@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel de Pagos</title>
+  <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Bienvenido al Panel de Pagos</h1>
+    <a href="/logout" class="button">Cerrar sesión</a>
+  </header>
+
+  <main>
+    <h3>Simular acciones</h3>
+    <button id="payBtn">Simular Pago</button>
+    <button id="refundBtn">Simular Reembolso</button>
+
+    <h3>Notificaciones en tiempo real</h3>
+    <div id="notifications" style="background:#f9f9f9;padding:10px;border-radius:8px;">
+      <p><i>No hay notificaciones todavía...</i></p>
+    </div>
+  </main>
+
+  <script>
+    const socket = io();
+    const notificationsDiv = document.getElementById('notifications');
+
+    // Simular un pago
+    document.getElementById('payBtn').addEventListener('click', () => {
+      const data = {
+        user: 'Usuario Google',
+        product: 'Producto de prueba',
+        amount: (Math.random() * 200).toFixed(2)
+      };
+      socket.emit('new-payment', data);
+    });
+
+    // Simular reembolso
+    document.getElementById('refundBtn').addEventListener('click', () => {
+      const data = {
+        user: 'Usuario Google',
+        amount: (Math.random() * 100).toFixed(2)
+      };
+      socket.emit('refund-processed', data);
+    });
+
+    // Escuchar actualizaciones
+    socket.on('payment-update', (data) => {
+      const p = document.createElement('p');
+      p.textContent = `${data.message} — S/.${data.amount}`;
+      notificationsDiv.appendChild(p);
+    });
+
+    socket.on('refund-update', (data) => {
+      const p = document.createElement('p');
+      p.textContent = `${data.message}`;
+      notificationsDiv.appendChild(p);
+    });
+  </script>
+  
+  <script>
+  async function checkUser() {
+    const res = await fetch('/auth/user');
+    const data = await res.json();
+
+    if (!data.loggedIn) {
+      // Si no hay sesión, redirigir al login
+      window.location.href = '/login.html';
+    } else {
+      // Mostrar info del usuario autenticado
+      document.getElementById('user-info').textContent =
+        `Bienvenido, ${data.user.name} (${data.user.email})`;
+    }
+  }
+
+  // Ejecutar al cargar
+  window.onload = checkUser;
+</script>
+
+<div id="user-info"></div>
+
+</body>
+</html>
