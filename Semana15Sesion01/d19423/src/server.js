@@ -48,8 +48,14 @@ app.get('/',(req,res)=>{
 app.get('/google', passport.authenticate("google",{ scope:['email']}));
 
 app.get('/google/callback', passport.authenticate("google",{failureRedirect:"/failed"}), (req,res)=>{
-    console.log(req.user.email);
-    email= req.user.email;
+    email = getOAuthEmail(req.user);
+    res.redirect("/success");
+});
+
+app.get('/github', githubConfigured, passport.authenticate("github",{ scope:['user:email']}));
+
+app.get('/github/callback', githubConfigured, passport.authenticate("github",{failureRedirect:"/failed"}), (req,res)=>{
+    email = getOAuthEmail(req.user);
     res.redirect("/success");
 });
 
@@ -63,6 +69,27 @@ app.get("/success", (req,res)=>{
     })
 })
 
+
+function getOAuthEmail(user) {
+    if (user.email) {
+        return user.email;
+    }
+
+    if (Array.isArray(user.emails) && user.emails.length > 0) {
+        const primaryEmail = user.emails.find((item) => item.primary) || user.emails[0];
+        return primaryEmail.value || primaryEmail.email;
+    }
+
+    return user.username || user.id;
+}
+
+function githubConfigured(req, res, next) {
+    if (!process.env.GITHUB_CLIENT_ID || !process.env.GITHUB_CLIENT_SECRET || !process.env.GITHUB_CALLBACK_URL) {
+        return res.status(500).send('Configura GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET y GITHUB_CALLBACK_URL en el archivo .env');
+    }
+
+    next();
+}
 
 function chat_start() {
     // ===================================Sockets starts  =========================

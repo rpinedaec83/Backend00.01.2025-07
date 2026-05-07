@@ -98,6 +98,17 @@ html,body{
     padding: 10px 20px;
 }
 
+.form-box input[type="button"],
+.form-box input.btn {
+    margin-top: 10px;
+    cursor: pointer;
+}
+
+.form-box .btn-github {
+    background: #24292f;
+    color: #fff;
+}
+
 .animated {
     -webkit-animation-duration: 1s;
     animation-duration: 1s;
