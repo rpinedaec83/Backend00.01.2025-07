@@ -39,34 +39,25 @@ app.use(passport.session());
 
 let username;
 let connections = [];
-let email;
 
 app.get('/',(req,res)=>{
     authenticate(req,res);
 })
 
-app.get('/google', passport.authenticate("google",{ scope:['email']}));
+app.get('/google', googleConfigured, passport.authenticate("google",{ scope:['email']}));
 
-app.get('/google/callback', passport.authenticate("google",{failureRedirect:"/failed"}), (req,res)=>{
-    email = getOAuthEmail(req.user);
-    res.redirect("/success");
+app.get('/google/callback', googleConfigured, passport.authenticate("google",{failureRedirect:"/failed"}), (req,res)=>{
+    finishOAuthLogin(req, res);
 });
 
 app.get('/github', githubConfigured, passport.authenticate("github",{ scope:['user:email']}));
 
 app.get('/github/callback', githubConfigured, passport.authenticate("github",{failureRedirect:"/failed"}), (req,res)=>{
-    email = getOAuthEmail(req.user);
-    res.redirect("/success");
+    finishOAuthLogin(req, res);
 });
 
 app.get("/success", (req,res)=>{
-    let sql = `REPLACE INTO login (usermane,password) VALUES('${email}', 'oauth');`;
-    con.query(sql,(err,result)=>{
-        if(err) throw err;
-        req.session.user = email;
-        username = email;
-        res.redirect('/chat_start')
-    })
+    authenticate(req,res);
 })
 
 
@@ -81,6 +72,30 @@ function getOAuthEmail(user) {
     }
 
     return user.username || user.id;
+}
+
+function finishOAuthLogin(req, res) {
+    const oauthEmail = getOAuthEmail(req.user);
+
+    if (!oauthEmail) {
+        return res.redirect('/failed');
+    }
+
+    const sql = 'REPLACE INTO login (usermane,password) VALUES(?, ?);';
+    con.query(sql, [oauthEmail, 'oauth'], (err,result)=>{
+        if(err) throw err;
+        req.session.user = oauthEmail;
+        username = oauthEmail;
+        res.redirect('/chat_start')
+    })
+}
+
+function googleConfigured(req, res, next) {
+    if (!process.env.CLIENTID || !process.env.SECRETID || !process.env.CALLBACKURL) {
+        return res.status(500).send('Configura CLIENTID, SECRETID y CALLBACKURL en el archivo .env');
+    }
+
+    next();
 }
 
 function githubConfigured(req, res, next) {
