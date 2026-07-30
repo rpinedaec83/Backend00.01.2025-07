@@ -1,0 +1,87 @@
+{
+  "info": {
+    "name": "Hackathon Auth",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "url": "{{base}}/health"
+      }
+    },
+    {
+      "name": "Session Login",
+      "request": {
+        "method": "POST",
+        "url": "{{base}}/session/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"user123\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Session Me",
+      "request": {
+        "method": "GET",
+        "url": "{{base}}/session/me"
+      }
+    },
+    {
+      "name": "JWT Login",
+      "request": {
+        "method": "POST",
+        "url": "{{base}}/jwt/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"user123\"\n}"
+        }
+      }
+    },
+    {
+      "name": "JWT Me",
+      "request": {
+        "method": "GET",
+        "url": "{{base}}/jwt/me",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access}}"
+          }
+        ]
+      }
+    },
+    {
+      "name": "JWT Refresh",
+      "request": {
+        "method": "POST",
+        "url": "{{base}}/jwt/refresh"
+      }
+    },
+    {
+      "name": "JWT Logout",
+      "request": {
+        "method": "POST",
+        "url": "{{base}}/jwt/logout",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access}}"
+          }
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "access",
+      "value": ""
+    }
+  ]
+}
